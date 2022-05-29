@@ -17,6 +17,7 @@ context.font = font_size_px + "px Arial Narrow";
 context.textAlign = "left";
 
 // (130.1583, 33.5750) -> (52S, 607502, 3715635)
+// ◆MapViewer_testとかと微妙にずれる。
 
 const src_lglt = new CLgLt(130.1583, 33.5750);
 
