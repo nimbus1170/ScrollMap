@@ -1,14 +1,14 @@
 //
-// UTM.hpp
+// UTM.js
 // UTM座標
 //
 //---------------------------------------------------------------------------
 export class CUTM
 {
-	constructor(hemi, lg_band, ew, ns){
-		if((typeof hemi) === "string")
-			Object.assign(this, {hemi, lg_band, ew, ns});
-		else if(hemi instanceof CUTM)
+	constructor(lg_band, hemi, ew, ns){
+		if((typeof lg_band) === "number")
+			Object.assign(this, {lg_band, hemi, ew, ns});
+		else if(lg_band instanceof CUTM)
 			Object.assign(this, hemi);
 	}
 

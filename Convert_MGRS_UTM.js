@@ -1,6 +1,7 @@
 //
 // Convert_MGRS_UTM.cpp
-// 
+// MGRS ⇔ UTM
+//
 // ◆南半球にも対応しているか？
 //
 //---------------------------------------------------------------------------
@@ -113,7 +114,7 @@ export function MakeUTM(lg_band, lt_band, mgrs_id, mgrs_ew, mgrs_ns)
 	const utm_ew = GetUTM_EW_100km(lg_band,			 mgrs_id) + mgrs_ew;
 	const utm_ns = GetUTM_NS_100km(lg_band, lt_band, mgrs_id) + mgrs_ns;
 
-	return new CUTM((lt_band.charCodeAt(0) >= "N".charCodeAt(0))? "n": "s", lg_band, utm_ew, utm_ns);
+	return new CUTM(lg_band, (lt_band.charCodeAt(0) >= "N".charCodeAt(0))? "n": "s", utm_ew, utm_ns);
 }
 //---------------------------------------------------------------------------
 export function GetLtBand(lt)
@@ -163,6 +164,6 @@ export function GetMGRS_ID(utm)
 	return mgrs_id_ew + mgrs_id_ns;
 }
 //---------------------------------------------------------------------------
-export function GetMGRS_EW(utm){ return ((Math.floor(utm.ew)) % 100000) + (utm.ew - Math.floor(utm.ew));}
-export function GetMGRS_NS(utm){ return ((Math.floor(utm.ns)) % 100000) + (utm.ns - Math.floor(utm.ns));}
+export function GetMGRS_EW(utm){ return ((Math.trunc(utm.ew)) % 100000) + (utm.ew - Math.floor(utm.ew));}
+export function GetMGRS_NS(utm){ return ((Math.trunc(utm.ns)) % 100000) + (utm.ns - Math.floor(utm.ns));}
 //---------------------------------------------------------------------------

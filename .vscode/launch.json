@@ -9,14 +9,14 @@
 			"name": "Launch Edge on localhost",
 			"type": "msedge",
 			"request": "launch",
-			"url": "http://localhost:5500/Convert_LgLt_UTM_test.html",
+			"url": "http://localhost:5500/ScrollMap.html",
 			"webRoot": "${workspaceFolder}"
 		},
 		{
 			"name": "Launch Chrome on localhost",
 			"type": "pwa-chrome",
 			"request": "launch",
-			"url": "http://localhost:5500",
+			"url": "http://localhost:5500/ScrollMap.html",
 			"webRoot": "${workspaceFolder}"
 		}
 	]

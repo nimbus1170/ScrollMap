@@ -87,7 +87,7 @@ export function ToUTM(lglt)
 
 	//--------------------------------------------------
 
-	return new CUTM((lglt.lt >= 0.0)? "n": "s", GetLgBand(lglt.lg), utm_ew, utm_ns);
+	return new CUTM(GetLgBand(lglt.lg), (lglt.lt >= 0.0)? "n": "s", utm_ew, utm_ns);
 }
 //---------------------------------------------------------------------------
 export function ToLgLt(utm)
