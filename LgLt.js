@@ -17,11 +17,11 @@ export class CLgLt
 //---------------------------------------------------------------------------
 export function ToDecimalDeg(deg, min, sec)
 {
-	// 秒の繰り下がり・繰り上がり
+	// 秒の繰り上がり・繰り下がり
     while(sec >= 60){ ++min; sec -= 60;}
     while(sec <   0){ --min; sec += 60;}
 
-	// 分の繰り下がり・繰り上がり
+	// 分の繰り上がり・繰り下がり
     while(min >= 60){ ++deg; min -= 60;}
     while(min <   0){ --deg; min += 60;}
 
