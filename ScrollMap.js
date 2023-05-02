@@ -2,11 +2,15 @@
 // ScrollMap.js
 //
 //---------------------------------------------------------------------------
-import {CLgLt, ToDecimalDeg, GetDeg, GetMin, GetSec} from "./LgLt.js";
-import {CUTM } from "./UTM.js"
-import {ToUTM, ToLgLt} from "./Convert_LgLt_UTM.js"
-import {MakeUTM, GetLtBand, GetMGRS_ID, GetMGRS_EW, GetMGRS_NS} from "./Convert_MGRS_UTM.js"
+// JavaScriptには名前空間もないのでexport/importで不要な要素を晒さないようにする。
+// ◆相対パスは実行時に参照できないので、LiveServerのrootを設定して、そこからのパスで指定する。
+import {CLgLt, ToDecimalDeg, GetDeg, GetMin, GetSec} 			from "http://localhost: 5501/lib/Debug/js/LgLt.js";
+import {CUTM} 													from "http://localhost:5501/lib/Debug/js/UTM.js"
+import {ToUTM, ToLgLt}											from "http://localhost:5501/lib/Debug/js/Convert_LgLt_UTM.js"
+import {MakeUTM, GetLtBand, GetMGRS_ID, GetMGRS_EW, GetMGRS_NS} from "http://localhost:5501/lib/Debug/js/Convert_MGRS_UTM.js"
 //---------------------------------------------------------------------------
+'use strict';
+
 const canvas = document.getElementById("canvas");
 
 const context = canvas.getContext("2d");
@@ -18,13 +22,11 @@ const map_img = new Image();
 
 	map_img.src = "./地図.jpg";
 
-	const s_lg = ToDecimalDeg(130, 15, 0);
-	const e_lg = ToDecimalDeg(130, 20, 0);
-	const s_lt = ToDecimalDeg( 33, 32, 0);
-	const e_lt = ToDecimalDeg( 33, 35, 0);
+	const s_lglt = new CLgLt(ToDecimalDeg(130, 15, 0), ToDecimalDeg( 33, 32, 0));
+	const e_lglt = new CLgLt(ToDecimalDeg(130, 20, 0), ToDecimalDeg( 33, 35, 0));
 
-	canvas.width  = "2907";
-	canvas.height = "2119";
+	canvas.width  = "1951";
+	canvas.height = "1392";
 
 	const font_size_px = 20;
 	const font_family = "Arial Narrow";
@@ -89,12 +91,14 @@ map_img.onload = () =>
 	redraw();
 }
 
+const utm_grid_labels = new Set();
+
 function redraw()
 {
 	context.drawImage(map_img, 0, 0);
 
-// テスト用
-//#region
+//#region テスト用
+
 /*	// 左上隅
 	const p_lglt = CanvasPosToLgLt(scroll_x, scroll_y);
 
@@ -134,114 +138,194 @@ function redraw()
 	//--------------------------------------------------
 	// 地図画像の端に経緯度グリッド座標(分)を標示する。
 
-	context.fillStyle = 
-	context.strokeStyle = "black";
-
-	context.beginPath(); 
-
-	let last_lg_min = GetMin(CanvasPosToLgLt(scroll_x, scroll_y).lg);
-
-	for(let x = scroll_x; x <= scroll_x + cl_w - canvas.offsetLeft; ++x)
+	if(false)
 	{
-		const p_lg = CanvasPosToLgLt(x, scroll_y).lg;
+		context.fillStyle = 
+		context.strokeStyle = "black";
 
-		const curr_lg_min = GetMin(p_lg);
+		context.beginPath(); 
 
-		if(curr_lg_min == last_lg_min) continue;
+		let last_lg_min = GetMin(CanvasPosToLgLt(scroll_x, scroll_y).lg);
 
-		context.moveTo(x, scroll_y     );
-		context.lineTo(x, scroll_y + 20);
-	
-		context.fillText
-			(GetDeg(p_lg) + "°" + ("00" + GetMin(p_lg)).slice(-2) + "′",
-			 x + 2, scroll_y + font_size_px);
+		for(let x = scroll_x; x <= scroll_x + cl_w - canvas.offsetLeft; ++x)
+		{
+			const p_lg = CanvasPosToLgLt(x, scroll_y).lg;
 
-		last_lg_min = curr_lg_min;
+			const curr_lg_min = GetMin(p_lg);
+
+			if(curr_lg_min == last_lg_min) continue;
+
+			context.moveTo(x, scroll_y     );
+			context.lineTo(x, scroll_y + 20);
+		
+			context.fillText
+				(GetDeg(p_lg) + "°" + ("00" + GetMin(p_lg)).slice(-2) + "′",
+				x + 2, scroll_y + font_size_px);
+
+			last_lg_min = curr_lg_min;
+		}
+
+		let last_lt_min = GetMin(CanvasPosToLgLt(scroll_x, scroll_y + cl_h - canvas.offsetTop).lg);
+
+		for(let y = scroll_y + cl_h - canvas.offsetTop; y >= scroll_y; --y)
+		{
+			const p_lt = CanvasPosToLgLt(scroll_x, y).lt;
+
+			const curr_lt_min = GetMin(p_lt);
+
+			if(curr_lt_min == last_lt_min) continue;
+
+			context.moveTo(scroll_x     , y);
+			context.lineTo(scroll_x + 20, y);
+
+			context.fillText
+				(GetDeg(p_lt) + "°" + ("00" + GetMin(p_lt)).slice(-2) + "′",
+				scroll_x + 2, y + font_size_px);
+
+			last_lt_min = curr_lt_min;
+		}
+
+		context.stroke();
 	}
-
-	let last_lt_min = GetMin(CanvasPosToLgLt(scroll_x, scroll_y + cl_h - canvas.offsetTop).lg);
-
-	for(let y = scroll_y + cl_h - canvas.offsetTop; y >= scroll_y; --y)
-	{
-		const p_lt = CanvasPosToLgLt(scroll_x, y).lt;
-
-		const curr_lt_min = GetMin(p_lt);
-
-		if(curr_lt_min == last_lt_min) continue;
-
-		context.moveTo(scroll_x     , y);
-		context.lineTo(scroll_x + 20, y);
-
-		context.fillText
-			(GetDeg(p_lt) + "°" + ("00" + GetMin(p_lt)).slice(-2) + "′",
-			 scroll_x + 2, y + font_size_px);
-
-		last_lt_min = curr_lt_min;
-	}
-
-	context.stroke();
 
 	//--------------------------------------------------
 	// 地図画像の端にUTMグリッド座標(km)を標示する。
 
-	context.fillStyle = 
-	context.strokeStyle = "maroon";
-
-	context.beginPath(); 
-
-	let last_utm_ew_km = Math.trunc(ToUTM(CanvasPosToLgLt(scroll_x, scroll_y)).ew / 1000);
-
-	for(let x = scroll_x; x <= scroll_x + cl_w - canvas.offsetLeft; ++x)
+	if(false)
 	{
-		const p_utm = ToUTM(CanvasPosToLgLt(x, scroll_y));
+		context.fillStyle = 
+		context.strokeStyle = "maroon";
 
-		// pxが1ずつ変化してもewが1(以下)づつ変化するとは限らない。
-	//	if((Math.trunc(p_utm.ew) % 100) != 0) continue;
+		context.beginPath(); 
 
-		const curr_utm_ew_km = Math.trunc(p_utm.ew / 1000);
+		let last_utm_ew_km = Math.trunc(ToUTM(CanvasPosToLgLt(scroll_x, scroll_y)).ew / 1000);
 
-		if(curr_utm_ew_km == last_utm_ew_km) continue;
+		for(let x = scroll_x; x <= scroll_x + cl_w - canvas.offsetLeft; ++x)
+		{
+			const p_utm = ToUTM(CanvasPosToLgLt(x, scroll_y));
 
-		context.moveTo(x, scroll_y     );
-		context.lineTo(x, scroll_y + 20);
-	
-		context.fillText
-			(("00" + Math.trunc(p_utm.ew / 1000)).slice(-2),
-			 x + 2, scroll_y + font_size_px);
+			// pxが1ずつ変化してもewが1(以下)づつ変化するとは限らない。
+		//	if((Math.trunc(p_utm.ew) % 100) != 0) continue;
 
-		last_utm_ew_km = curr_utm_ew_km;
+			const curr_utm_ew_km = Math.trunc(p_utm.ew / 1000);
+
+			if(curr_utm_ew_km == last_utm_ew_km) continue;
+
+			context.moveTo(x, scroll_y     );
+			context.lineTo(x, scroll_y + 20);
+		
+			context.fillText
+				(("00" + Math.trunc(p_utm.ew / 1000)).slice(-2),
+				x + 2, scroll_y + font_size_px);
+
+			last_utm_ew_km = curr_utm_ew_km;
+		}
+
+		let last_utm_ns_km = Math.trunc(ToUTM(CanvasPosToLgLt(scroll_x, scroll_y + cl_h - canvas.offsetTop)).ns / 1000);
+
+		for(let y = scroll_y + cl_h - canvas.offsetTop; y >= scroll_y; --y)
+		{
+			const p_utm = ToUTM(CanvasPosToLgLt(scroll_x, y));
+
+			// pxが1ずつ変化してもnsが1(以下)づつ変化するとは限らない。
+		//	if(Math.trunc(p_utm.ns % 1000) != 0) continue;
+
+			const curr_utm_ns_km = Math.trunc(p_utm.ns / 1000);
+
+			if(curr_utm_ns_km == last_utm_ns_km) continue;
+
+			context.moveTo(scroll_x     , y);
+			context.lineTo(scroll_x + 20, y);
+
+			context.fillText
+				(("00" + Math.trunc(p_utm.ns / 1000)).slice(-2),
+				scroll_x + 2, y + font_size_px);
+
+			last_utm_ns_km = curr_utm_ns_km;
+		}
+
+		context.stroke();
 	}
 
-	let last_utm_ns_km = Math.trunc(ToUTM(CanvasPosToLgLt(scroll_x, scroll_y + cl_h - canvas.offsetTop)).ns / 1000);
-
-	for(let y = scroll_y + cl_h - canvas.offsetTop; y >= scroll_y; --y)
+	// ラベルで描いてみる。
+	if(true)
 	{
-		const p_utm = ToUTM(CanvasPosToLgLt(scroll_x, y));
+		for(let utm_grid_label of utm_grid_labels)
+		{
+			utm_grid_label.remove();
+		}
+		
+		utm_grid_labels.clear();
 
-		// pxが1ずつ変化してもnsが1(以下)づつ変化するとは限らない。
-	//	if(Math.trunc(p_utm.ns % 1000) != 0) continue;
+		let last_utm_ew_km = Math.trunc(ToUTM(CanvasPosToLgLt(scroll_x, scroll_y)).ew / 1000);
 
-		const curr_utm_ns_km = Math.trunc(p_utm.ns / 1000);
+		for(let x = scroll_x; x <= scroll_x + cl_w - canvas.offsetLeft; ++x)
+		{
+			const p_utm = ToUTM(CanvasPosToLgLt(x, scroll_y));
 
-		if(curr_utm_ns_km == last_utm_ns_km) continue;
+			// pxが1ずつ変化してもewが1(以下)づつ変化するとは限らない。
+		//	if((Math.trunc(p_utm.ew) % 100) != 0) continue;
 
-		context.moveTo(scroll_x     , y);
-		context.lineTo(scroll_x + 20, y);
+			const curr_utm_ew_km = Math.trunc(p_utm.ew / 1000);
 
-		context.fillText
-			(("00" + Math.trunc(p_utm.ns / 1000)).slice(-2),
-			 scroll_x + 2, y + font_size_px);
+			if(curr_utm_ew_km == last_utm_ew_km) continue;
 
-		last_utm_ns_km = curr_utm_ns_km;
+			const utm_grid = document.createElement("hr");
+			document.body.appendChild(utm_grid);
+			utm_grid.style.width = 20;
+			utm_grid.style.border = 0;
+			utm_grid.style.top = 10 + "px solid#333";
+			utm_grid.style.margin = 0;
+			utm_grid.style.padding = 0;
+			utm_grid.style["transform"] = "rotate(90deg)";
+
+
+			const utm_grid_label = document.createElement("label");
+			document.body.appendChild(utm_grid_label);
+			utm_grid_label.style.font = font_size_px + "px " + font_family;
+			utm_grid_label.style.position = "absolute";
+			utm_grid_label.style.pointerEvents = "none";
+
+			utm_grid_label.style.left = x + "px";
+			utm_grid_label.style.top  = scroll_y + "px";
+
+			utm_grid_label.innerText = ("00" + Math.trunc(p_utm.ew / 1000)).slice(-2);
+
+			utm_grid_labels.add(utm_grid_label);
+
+			last_utm_ew_km = curr_utm_ew_km;
+		}
+
+		let last_utm_ns_km = Math.trunc(ToUTM(CanvasPosToLgLt(scroll_x, scroll_y + cl_h - canvas.offsetTop)).ns / 1000);
+
+		for(let y = scroll_y + cl_h - canvas.offsetTop; y >= scroll_y; --y)
+		{
+			const p_utm = ToUTM(CanvasPosToLgLt(scroll_x, y));
+
+			// pxが1ずつ変化してもnsが1(以下)づつ変化するとは限らない。
+		//	if(Math.trunc(p_utm.ns % 1000) != 0) continue;
+
+			const curr_utm_ns_km = Math.trunc(p_utm.ns / 1000);
+
+			if(curr_utm_ns_km == last_utm_ns_km) continue;
+
+			context.moveTo(scroll_x     , y);
+			context.lineTo(scroll_x + 20, y);
+
+			context.fillText
+				(("00" + Math.trunc(p_utm.ns / 1000)).slice(-2),
+				scroll_x + 2, y + font_size_px);
+
+			last_utm_ns_km = curr_utm_ns_km;
+		}
+
 	}
-
-	context.stroke();
 }
 
 function CanvasPosToLgLt(x, y)
 {
-	const lg = s_lg + (e_lg - s_lg) * (x / canvas.width );
-	const lt = e_lt - (e_lt - s_lt) * (y / canvas.height);
+	const lg = s_lglt.lg + (e_lglt.lg - s_lglt.lg) * (x / canvas.width );
+	const lt = e_lglt.lt - (e_lglt.lt - s_lglt.lt) * (y / canvas.height);
 
 	return new CLgLt(lg, lt);
 }
