@@ -4,10 +4,10 @@
 //---------------------------------------------------------------------------
 // JavaScriptには名前空間もないのでexport/importで不要な要素を晒さないようにする。
 // ◆相対パスは実行時に参照できないので、LiveServerのrootを設定して、そこからのパスで指定する。
-import {CLgLt, ToDecimalDeg, GetDeg, GetMin, GetSec} 			from "http://localhost: 5501/lib/Debug/js/LgLt.js";
-import {CUTM} 													from "http://localhost:5501/lib/Debug/js/UTM.js"
-import {ToUTM, ToLgLt}											from "http://localhost:5501/lib/Debug/js/Convert_LgLt_UTM.js"
-import {MakeUTM, GetLtBand, GetMGRS_ID, GetMGRS_EW, GetMGRS_NS} from "http://localhost:5501/lib/Debug/js/Convert_MGRS_UTM.js"
+import {CLgLt, ToDecimalDeg, GetDeg, GetMin, GetSec} 			from "http://localhost:5501/src/js/LgLt.js";
+import {CUTM} 													from "http://localhost:5501/src/js/UTM.js"
+import {ToUTM, ToLgLt}											from "http://localhost:5501/src/js/Convert_LgLt_UTM.js"
+import {MakeUTM, GetLtBand, GetMGRS_ID, GetMGRS_EW, GetMGRS_NS} from "http://localhost:5501/src/js/Convert_MGRS_UTM.js"
 //---------------------------------------------------------------------------
 'use strict';
 
